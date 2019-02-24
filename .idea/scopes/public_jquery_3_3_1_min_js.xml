@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="public/jquery-3.3.1.min.js" pattern="file:public/jquery-3.3.1.min.js" />
+</component>
