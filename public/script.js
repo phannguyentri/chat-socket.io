@@ -12,9 +12,14 @@ $(document).ready(function () {
 });
 
 socket.on('server-register', function(dataName) {
-    console.log(dataName);
+    $('#currentUser').text(dataName);
+    $('#chatForm').show();
+    $('#loginForm').hide();
 });
 
 socket.on('server-data-login', function (listLogin) {
-    console.log(listLogin)
+    $('#boxContent').empty();
+    listLogin.forEach(function(value) {
+        $('#boxContent').append('<div class="userOnline">' +value+ '</div>');
+    });
 });
