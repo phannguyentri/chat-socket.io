@@ -13,26 +13,24 @@ app.get("/", function(req, res){
 });
 
 let arrRegister = [];
-
+let listLogin   = [];
 io.on("connection", function(socket){
     console.log(socket.id + " login!");
 
     socket.on('client-register', function(dataName) {
-        arrRegister.push (
-            {
-                id      : socket.id,
-                name    : dataName
-            }
-        );
+        let newRegister = registerUser(arrRegister, socket.id, dataName);
 
-        let listLogin = [];
+        if (newRegister) {
+            arrRegister = newRegister;
+            // return data to current client
+            socket.emit('server-register', dataName);
+        } else {
+            // return data to current client
+            socket.emit('server-register', false);
+            return;
+        }
 
-        arrRegister.forEach(function(value, key){
-            listLogin.push(value.name);
-        });
-
-        // return data to current client
-        socket.emit('server-register', dataName);
+        listLogin.push(dataName);
 
         //  return data to all client
         io.sockets.emit('server-data-login', listLogin);
@@ -42,3 +40,44 @@ io.on("connection", function(socket){
 
     });
 });
+
+let registerUser = (arrRegister, socketId, dataName) => {
+    let listRegisterName    = [];
+    listRegisterName.push(dataName);
+    arrRegister.forEach(function(register){
+        listRegisterName.push(register.name);
+
+    });
+
+    if (!find_duplicate_in_array(listRegisterName).length) {
+        arrRegister.push (
+            {
+                id      : socketId,
+                name    : dataName
+            }
+        );
+    } else {
+        return false;
+    }
+
+    return arrRegister;
+};
+
+function find_duplicate_in_array(array) {
+    const object = {};
+    const result = [];
+
+    array.forEach(item => {
+        if(!object[item])
+            object[item] = 0;
+        object[item] += 1;
+    });
+
+    for (const prop in object) {
+        if(object[prop] >= 2) {
+            result.push(prop);
+        }
+    }
+
+    return result;
+}

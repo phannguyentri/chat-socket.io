@@ -12,9 +12,13 @@ $(document).ready(function () {
 });
 
 socket.on('server-register', function(dataName) {
-    $('#currentUser').text(dataName);
-    $('#chatForm').show();
-    $('#loginForm').hide();
+    if (dataName) {
+        $('#currentUser').text(dataName);
+        $('#chatForm').show();
+        $('#loginForm').hide();
+    } else {
+        alert('Duplicate');
+    }
 });
 
 socket.on('server-data-login', function (listLogin) {
