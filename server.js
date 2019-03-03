@@ -14,46 +14,19 @@ app.get("/", function(req, res){
 
 let arrRegister = [];
 let listLogin   = [];
-io.on("connection", function(socket){
-    console.log(socket.id + " login!");
 
-    socket.on('client-register', function(dataName) {
-        let newRegister = registerUser(arrRegister, socket.id, dataName);
-
-        if (newRegister) {
-            arrRegister = newRegister;
-            // return data to current client
-            socket.emit('server-register', dataName);
-        } else {
-            // return data to current client
-            socket.emit('server-register', false);
-            return;
-        }
-
-        listLogin.push(dataName);
-
-        //  return data to all client
-        io.sockets.emit('server-data-login', listLogin);
-    });
-
-    socket.on('disconnect', function () {
-
-    });
-});
-
-let registerUser = (arrRegister, socketId, dataName) => {
+let registerUser = (arrRegister, socketId, name) => {
     let listRegisterName    = [];
-    listRegisterName.push(dataName);
-    arrRegister.forEach(function(register){
+    listRegisterName.push(name);
+    arrRegister.forEach(register => {
         listRegisterName.push(register.name);
-
     });
 
-    if (!find_duplicate_in_array(listRegisterName).length) {
+    if (!findDuplicateInArray(listRegisterName).length) {
         arrRegister.push (
             {
                 id      : socketId,
-                name    : dataName
+                name    : name
             }
         );
     } else {
@@ -63,7 +36,7 @@ let registerUser = (arrRegister, socketId, dataName) => {
     return arrRegister;
 };
 
-function find_duplicate_in_array(array) {
+let findDuplicateInArray = (array) => {
     const object = {};
     const result = [];
 
@@ -80,4 +53,62 @@ function find_duplicate_in_array(array) {
     }
 
     return result;
-}
+};
+
+let checkInListLogin =  (listLogin, name) => {
+    var result = false;
+    listLogin.forEach((itemLogin) => {
+        if (itemLogin.name === name){
+            result = true;
+        }
+    });
+
+    return result;
+};
+
+io.on("connection", function(socket){
+    console.log(socket.id + " login!");
+
+    socket.on('client-register', function(name) {
+        let newRegister = registerUser(arrRegister, socket.id, name);
+
+        if (newRegister) {
+            arrRegister = newRegister;
+            // return data to current client
+            socket.emit('server-register', {id : socket.id, name: name});
+            socket.Username = name;
+        } else {
+            if (checkInListLogin(listLogin, name)) {
+                // return data to current client
+                socket.emit('server-register', false);
+                return;
+            } else {
+                socket.emit('server-register', {id : socket.id, name: name});
+                socket.Username = name;
+            }
+        }
+
+        listLogin.push({
+            id   : socket.id,
+            name : name
+        });
+
+        //  return data to all client
+        io.sockets.emit('server-data-login', listLogin);
+    });
+
+    socket.on('client-logout', (currentUserId) => {
+        console.log(currentUserId);
+        listLogin.forEach((itemLogin, key) => {
+            if (itemLogin.id === currentUserId){
+                listLogin.splice(key, 1);
+                socket.broadcast.emit('server-broadcast-logout', listLogin);
+                socket.emit('server-logout');
+            }
+        });
+    });
+
+    socket.on('disconnect', function () {
+
+    });
+});
