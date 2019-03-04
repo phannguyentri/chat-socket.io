@@ -16,7 +16,8 @@ $(document).ready(function () {
     });
 
     $('#btnSendMessage').click(() => {
-        var message = $('#txtMessage').val();
+        let message = $('#txtMessage').val();
+        socket.emit('client-send-message', message);
     });
 });
 
@@ -33,6 +34,11 @@ socket.on('server-register', function(dataRegister) {
 
 socket.on('server-data-login', function (listLogin) {
     showListLogin(listLogin);
+});
+
+socket.on('server-send-message', (data) => {
+    console.log(data);
+    $('#listMessage').append("<div class='chat-content'>" +data.name+ " : " +data.message+ "</div>");
 });
 
 socket.on('server-logout', () => {

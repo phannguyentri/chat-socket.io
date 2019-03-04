@@ -69,7 +69,7 @@ let checkInListLogin =  (listLogin, name) => {
 io.on("connection", function(socket){
     console.log(socket.id + " login!");
 
-    socket.on('client-register', function(name) {
+    socket.on('client-register', (name) => {
         let newRegister = registerUser(arrRegister, socket.id, name);
 
         if (newRegister) {
@@ -95,6 +95,10 @@ io.on("connection", function(socket){
 
         //  return data to all client
         io.sockets.emit('server-data-login', listLogin);
+    });
+
+    socket.on('client-send-message', (message) => {
+        io.sockets.emit('server-send-message', {name : socket.Username, message : message});
     });
 
     socket.on('client-logout', (currentUserId) => {
